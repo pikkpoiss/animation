@@ -25,5 +25,6 @@ func TestInterfaces(t *testing.T) {
 	anim = NewBoundedAnimation(1 * time.Second)
 	anim = NewChainedAnimation([]Animator{}, false)
 	anim = NewGroupedAnimation([]Animator{})
+	anim = NewFrameAnimation([]Frame{MsFrame(100, 0), MsFrame(100, 1), MsFrame(100, 2)}, false, nil)
 	t.Logf("Done checking interfaces for %v", anim)
 }

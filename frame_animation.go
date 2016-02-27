@@ -18,42 +18,89 @@ import (
 	"time"
 )
 
+type Frame struct {
+	Duration time.Duration
+	Index    int
+}
+
+func MsFrame(milliseconds, index int) Frame {
+	return Frame{time.Duration(milliseconds) * time.Millisecond, index}
+}
+
 type FrameAnimation struct {
-	*Animation
-	FrameLength time.Duration
-	Sequence    []int
-	Current     int
+	Elapsed   time.Duration
+	remainder time.Duration
+	Duration  time.Duration
+	callback  AnimatorCallback
+	sequence  []Frame
+	current   int
+	loop      bool
+	target    *int
 }
 
-func NewFrameAnimation(length time.Duration, frames []int) *FrameAnimation {
-	return &FrameAnimation{
-		Animation:   NewAnimation(),
-		FrameLength: length,
-		Sequence:    frames,
-		Current:     frames[0],
+func NewFrameAnimation(frames []Frame, loop bool, target *int) *FrameAnimation {
+	var f = &FrameAnimation{
+		loop:   loop,
+		target: target,
 	}
+	f.SetFrames(frames)
+	return f
 }
 
-func (a *FrameAnimation) Update(elapsed time.Duration) (done bool) {
-	a.Animation.Update(elapsed)
-	index := int(a.Elapsed()/a.FrameLength) % len(a.Sequence)
-	a.Current = a.Sequence[index]
-	done = false
-	if a.HasCallback() && index == len(a.Sequence)-1 {
-		a.Callback()
-		a.SetCallback(nil)
-		done = true
+func (a *FrameAnimation) IsDone() bool {
+	return !a.loop && a.Elapsed >= a.Duration
+}
+
+func (a *FrameAnimation) SetCallback(callback AnimatorCallback) {
+	a.callback = callback
+}
+
+func (a *FrameAnimation) Update(elapsed time.Duration) time.Duration {
+	a.Elapsed += elapsed
+	elapsed += a.remainder
+	for elapsed > 0 {
+		if elapsed >= a.sequence[a.current].Duration {
+			elapsed -= a.sequence[a.current].Duration
+			a.current += 1
+			if a.current >= len(a.sequence) {
+				if a.loop {
+					a.current = a.current % len(a.sequence)
+				} else {
+					a.current = len(a.sequence) - 1
+				}
+			}
+		} else {
+			a.remainder = elapsed
+			elapsed = 0
+		}
 	}
-	return
+	if a.target != nil {
+		*a.target = a.sequence[a.current].Index
+	}
+	if a.IsDone() {
+		if a.callback != nil {
+			a.callback()
+		}
+		return a.Elapsed - a.Duration
+	}
+	return 0
 }
 
-func (a *FrameAnimation) OffsetFrame(offset int) int {
-	index := int(a.Elapsed()/a.FrameLength) % len(a.Sequence)
-	return a.Sequence[(index+offset)%len(a.Sequence)]
+func (a *FrameAnimation) Reset() {
+	a.current = 0
+	a.Elapsed = 0
 }
 
-func (a *FrameAnimation) SetSequence(seq []int) {
-	a.Sequence = seq
-	a.Current = a.Sequence[0]
-	a.Animation.Reset()
+func (a *FrameAnimation) Delete() {}
+
+func (a *FrameAnimation) SetFrames(frames []Frame) {
+	var (
+		duration time.Duration = 0
+	)
+	for _, frame := range frames {
+		duration += frame.Duration
+	}
+	a.Duration = duration
+	a.sequence = frames
+	a.Reset()
 }

@@ -19,28 +19,90 @@ import (
 	"time"
 )
 
-func TestFrameAnimation(t *testing.T) {
+func TestLoopFrameAnimation(t *testing.T) {
 	var (
-		anim = NewFrameAnimation(100*time.Millisecond, []int{0, 2, 1, 3})
+		target int  = 0
+		done   bool = false
+		frames      = []Frame{MsFrame(100, 0), MsFrame(100, 2), MsFrame(100, 1), MsFrame(100, 3)}
+		anim        = NewFrameAnimation(frames, true, &target)
+		cb          = func() { done = true }
 	)
+	anim.SetCallback(cb)
 	anim.Update(50 * time.Millisecond)
-	if anim.Current != 0 {
-		t.Fatalf("Current frame does not match expected, got %v", anim.Current)
+	if target != 0 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
 	}
 	anim.Update(100 * time.Millisecond)
-	if anim.Current != 2 {
-		t.Fatalf("Current frame does not match expected, got %v", anim.Current)
+	if target != 2 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
 	}
 	anim.Update(100 * time.Millisecond)
-	if anim.Current != 1 {
-		t.Fatalf("Current frame does not match expected, got %v", anim.Current)
+	if target != 1 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
 	}
 	anim.Update(100 * time.Millisecond)
-	if anim.Current != 3 {
-		t.Fatalf("Current frame does not match expected, got %v", anim.Current)
+	if target != 3 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
 	}
 	anim.Update(100 * time.Millisecond)
-	if anim.Current != 0 {
-		t.Fatalf("Current frame does not match expected, got %v", anim.Current)
+	if target != 0 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
+	}
+	anim.Update(100 * time.Millisecond)
+	if target != 2 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
+	}
+	if anim.IsDone() {
+		t.Fatalf("Looping animation marked done (should not)")
+	}
+	if done {
+		t.Fatalf("Non-looping animation called callback (should not)")
+	}
+}
+
+func TestNonLoopFrameAnimation(t *testing.T) {
+	var (
+		target int  = 0
+		done   bool = false
+		frames      = []Frame{MsFrame(100, 0), MsFrame(100, 2), MsFrame(100, 1), MsFrame(100, 3)}
+		anim        = NewFrameAnimation(frames, false, &target)
+		cb          = func() { done = true }
+	)
+	anim.SetCallback(cb)
+	anim.Update(50 * time.Millisecond)
+	if target != 0 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
+	}
+	anim.Update(100 * time.Millisecond)
+	if target != 2 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
+	}
+	anim.Update(100 * time.Millisecond)
+	if target != 1 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
+	}
+	anim.Update(100 * time.Millisecond)
+	if target != 3 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
+	}
+	if anim.IsDone() {
+		t.Fatalf("Non-looping animation marked done too early")
+	}
+	if done {
+		t.Fatalf("Non-looping animation called callback too early")
+	}
+	anim.Update(100 * time.Millisecond)
+	if target != 3 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
+	}
+	if !anim.IsDone() {
+		t.Fatalf("Non-looping animation not marked done when finished")
+	}
+	if !done {
+		t.Fatalf("Non-looping animation did not call callback when done")
+	}
+	anim.Update(100 * time.Millisecond)
+	if target != 3 {
+		t.Fatalf("Current frame does not match expected, got %v", target)
 	}
 }
