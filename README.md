@@ -96,8 +96,24 @@ assert(anim.Value() == 0)
 
 ### FrameAnimation
 
-An animation over a discrete sequence of frames of a set duration
+An animation which loops over a discrete sequence of frames of a set duration
 per frame.
+
+```
+var (
+	anim = NewFrameAnimation(100*time.Millisecond, []int{0, 2, 1, 3})
+)
+anim.Update(50 * time.Millisecond)
+assert(anim.Current == 0)
+anim.Update(100 * time.Millisecond)
+assert(anim.Current == 2)
+anim.Update(100 * time.Millisecond)
+assert(anim.Current == 1)
+anim.Update(100 * time.Millisecond)
+assert(anim.Current == 3)
+anim.Update(100 * time.Millisecond)
+assert(anim.Current == 0)
+```
 
 ### GroupedAnimation
 
@@ -145,4 +161,12 @@ anim.Update(1000 * time.Millisecond)
 assert(dest == 20)
 anim.Update(1000 * time.Millisecond)
 assert(dest == 20)
+```
+
+## Development
+
+Run tests:
+
+```
+go test
 ```
