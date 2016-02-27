@@ -25,6 +25,10 @@ type ChainedAnimation struct {
 	callback  AnimatorCallback
 }
 
+func NewChainedAnimation(animators []Animator, loop bool) *ChainedAnimation {
+	return &ChainedAnimation{animators, loop, 0, nil}
+}
+
 func (a *ChainedAnimation) SetCallback(callback AnimatorCallback) {
 	a.callback = callback
 }

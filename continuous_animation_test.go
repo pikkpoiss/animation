@@ -22,22 +22,58 @@ import (
 // Tests that a continuous animation with sine decay function produces expected values.
 func TestContinuousAnimationSineDecay(t *testing.T) {
 	var (
-		anim = NewContinuousAnimation(SineDecayFunc(3 * time.Second, 5, 1, 1, nil))
+		dest float32 = 0.0
+		anim         = NewContinuousAnimation(SineDecayFunc(3*time.Second, 5, 1, 1, nil), &dest)
 	)
 	anim.Update(1 * time.Second)
-	if anim.Value() != 2.886751 {
-		t.Errorf("SineDecayFunc produced unexpected value %v", anim.Value())
+	if dest != 2.886751 {
+		t.Errorf("SineDecayFunc produced unexpected value %v", dest)
 	}
 	anim.Update(1 * time.Second)
-	if anim.Value() != -1.4433757 {
-		t.Errorf("SineDecayFunc produced unexpected value %v", anim.Value())
+	if dest != -1.4433757 {
+		t.Errorf("SineDecayFunc produced unexpected value %v", dest)
 	}
 	anim.Update(1 * time.Second)
-	if anim.Value() != 0 {
-		t.Errorf("SineDecayFunc produced unexpected value %v", anim.Value())
+	if dest != 0 {
+		t.Errorf("SineDecayFunc produced unexpected value %v", dest)
 	}
 	anim.Update(1 * time.Second)
-	if anim.Value() != 0 {
-		t.Errorf("SineDecayFunc produced unexpected value %v", anim.Value())
+	if dest != 0 {
+		t.Errorf("SineDecayFunc produced unexpected value %v", dest)
+	}
+}
+
+// Tests that a linear animation produces expected values.
+func TestContinuousLinearAnimation(t *testing.T) {
+	var (
+		dest float32 = 1.0
+		anim         = NewContinuousAnimation(LinearFunc(10, 20, 5*time.Second), &dest)
+	)
+	if dest != 1.0 {
+		t.Fatalf("Target value does not match expected, got %v", dest)
+	}
+	anim.Update(1000 * time.Millisecond)
+	if dest != 12 {
+		t.Fatalf("Target value does not match expected, got %v", dest)
+	}
+	anim.Update(1000 * time.Millisecond)
+	if dest != 14 {
+		t.Fatalf("Target value does not match expected, got %v", dest)
+	}
+	anim.Update(1000 * time.Millisecond)
+	if dest != 16 {
+		t.Fatalf("Target value does not match expected, got %v", dest)
+	}
+	anim.Update(1000 * time.Millisecond)
+	if dest != 18 {
+		t.Fatalf("Target value does not match expected, got %v", dest)
+	}
+	anim.Update(1000 * time.Millisecond)
+	if dest != 20 {
+		t.Fatalf("Target value does not match expected, got %v", dest)
+	}
+	anim.Update(1000 * time.Millisecond)
+	if dest != 20 {
+		t.Fatalf("Target value does not match expected, got %v", dest)
 	}
 }

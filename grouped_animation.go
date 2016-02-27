@@ -23,6 +23,10 @@ type GroupedAnimation struct {
 	callback  AnimatorCallback
 }
 
+func NewGroupedAnimation(animators []Animator) *GroupedAnimation {
+	return &GroupedAnimation{animators, nil}
+}
+
 func (a *GroupedAnimation) SetCallback(callback AnimatorCallback) {
 	a.callback = callback
 }

@@ -24,6 +24,10 @@ type BoundedAnimation struct {
 	callback AnimatorCallback
 }
 
+func NewBoundedAnimation(duration time.Duration) *BoundedAnimation {
+	return &BoundedAnimation{0, duration, nil}
+}
+
 func (a *BoundedAnimation) SetCallback(callback AnimatorCallback) {
 	a.callback = callback
 }

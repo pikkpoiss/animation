@@ -39,13 +39,14 @@ func NewLinearAnimation(target *float32, from, to float32, duration time.Duratio
 	}
 }
 
-func (a *LinearAnimation) Update(elapsed time.Duration) {
-	a.BoundedAnimation.Update(elapsed)
+func (a *LinearAnimation) Update(elapsed time.Duration) time.Duration {
 	var (
+		leftover = a.BoundedAnimation.Update(elapsed)
 		denom = float64(a.BoundedAnimation.Duration)
 		numer = math.Min(float64(a.BoundedAnimation.Elapsed), denom)
 		pct   = float32(numer / denom)
 		value = pct*(a.to-a.from) + a.from
 	)
 	*a.target = value
+	return leftover
 }

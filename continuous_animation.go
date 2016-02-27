@@ -24,17 +24,25 @@ type ContinuousFunc func(elapsed time.Duration) float32
 type ContinuousAnimation struct {
 	*Animation
 	function ContinuousFunc
+	target   *float32
 }
 
-func NewContinuousAnimation(f ContinuousFunc) *ContinuousAnimation {
+func NewContinuousAnimation(f ContinuousFunc, target *float32) *ContinuousAnimation {
 	return &ContinuousAnimation{
 		Animation: NewAnimation(),
 		function:  f,
+		target:    target,
 	}
 }
 
-func (a *ContinuousAnimation) Value() float32 {
-	return a.function(a.Elapsed())
+func (a *ContinuousAnimation) Update(elapsed time.Duration) time.Duration {
+	var (
+		//leftover = a.Animation.Update(elapsed)
+	)
+	a.Animation.Update(elapsed)
+	*a.target = a.function(a.Elapsed())
+	//return leftover
+	return 1 * time.Second
 }
 
 func SineDecayFunc(duration time.Duration, amplitude, frequency, decay float32, callback AnimationCallback) ContinuousFunc {
@@ -48,5 +56,16 @@ func SineDecayFunc(duration time.Duration, amplitude, frequency, decay float32, 
 		}
 		decayAmount := 1.0 - float32(elapsed)/float32(duration)*decay
 		return float32(math.Sin(elapsed.Seconds()*interval/duration.Seconds())) * amplitude * decayAmount
+	}
+}
+
+func LinearFunc(from, to float32, duration time.Duration) ContinuousFunc {
+	return func(elapsed time.Duration) float32 {
+		var (
+			denom = float64(duration)
+			numer = math.Min(float64(elapsed), denom)
+			pct   = float32(numer / denom)
+		)
+		return pct*(to-from) + from
 	}
 }
