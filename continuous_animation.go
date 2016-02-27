@@ -19,53 +19,83 @@ import (
 	"time"
 )
 
-type ContinuousFunc func(elapsed time.Duration) float32
+// Returns {value}, {done}, {remainder}
+type ContinuousFunc func(elapsed time.Duration) (float32, bool, time.Duration)
 
 type ContinuousAnimation struct {
-	*Animation
+	Elapsed  time.Duration
 	function ContinuousFunc
 	target   *float32
+	callback AnimatorCallback
+	done     bool
 }
 
 func NewContinuousAnimation(f ContinuousFunc, target *float32) *ContinuousAnimation {
 	return &ContinuousAnimation{
-		Animation: NewAnimation(),
-		function:  f,
-		target:    target,
+		function: f,
+		target:   target,
+		done:     false,
 	}
 }
 
 func (a *ContinuousAnimation) Update(elapsed time.Duration) time.Duration {
 	var (
-		//leftover = a.Animation.Update(elapsed)
+		remainder time.Duration
+		result    float32
 	)
-	a.Animation.Update(elapsed)
-	*a.target = a.function(a.Elapsed())
-	//return leftover
-	return 1 * time.Second
+	a.Elapsed += elapsed
+	result, a.done, remainder = a.function(a.Elapsed)
+	if a.target != nil {
+		*a.target = result
+	}
+	if a.IsDone() {
+		if a.callback != nil {
+			a.callback()
+		}
+	}
+	return remainder
 }
 
-func SineDecayFunc(duration time.Duration, amplitude, frequency, decay float32, callback AnimationCallback) ContinuousFunc {
+func (a *ContinuousAnimation) SetCallback(callback AnimatorCallback) {
+	a.callback = callback
+}
+
+func (a *ContinuousAnimation) IsDone() bool {
+	return a.done
+}
+
+func (a *ContinuousAnimation) Reset() {
+	a.done = false
+	a.Elapsed = 0
+}
+
+func (a *ContinuousAnimation) Delete() {}
+
+func SineDecayFunc(duration time.Duration, amplitude, frequency, decay float32) ContinuousFunc {
 	var interval = float64(frequency * 2.0 * math.Pi)
-	return func(elapsed time.Duration) float32 {
-		if elapsed > duration {
-			if callback != nil {
-				callback()
-			}
-			return 0.0
+	return func(elapsed time.Duration) (value float32, done bool, remainder time.Duration) {
+		done = elapsed >= duration
+		remainder = elapsed - duration
+		if done {
+			value = 0
+		} else {
+			decayAmount := 1.0 - float32(elapsed)/float32(duration)*decay
+			value = float32(math.Sin(elapsed.Seconds()*interval/duration.Seconds())) * amplitude * decayAmount
 		}
-		decayAmount := 1.0 - float32(elapsed)/float32(duration)*decay
-		return float32(math.Sin(elapsed.Seconds()*interval/duration.Seconds())) * amplitude * decayAmount
+		return
 	}
 }
 
-func LinearFunc(from, to float32, duration time.Duration) ContinuousFunc {
-	return func(elapsed time.Duration) float32 {
+func LinearFunc(duration time.Duration, from, to float32) ContinuousFunc {
+	return func(elapsed time.Duration) (value float32, done bool, remainder time.Duration) {
 		var (
 			denom = float64(duration)
 			numer = math.Min(float64(elapsed), denom)
 			pct   = float32(numer / denom)
 		)
-		return pct*(to-from) + from
+		value = pct*(to-from) + from
+		done = elapsed >= duration
+		remainder = elapsed - duration
+		return
 	}
 }

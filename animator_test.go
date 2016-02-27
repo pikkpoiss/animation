@@ -26,5 +26,6 @@ func TestInterfaces(t *testing.T) {
 	anim = NewChainedAnimation([]Animator{}, false)
 	anim = NewGroupedAnimation([]Animator{})
 	anim = NewFrameAnimation([]Frame{}, false, nil)
+	anim = NewContinuousAnimation(LinearFunc(1*time.Second, 0, 10), nil)
 	t.Logf("Done checking interfaces for %v", anim)
 }

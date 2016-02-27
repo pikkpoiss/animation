@@ -23,7 +23,7 @@ import (
 func TestContinuousAnimationSineDecay(t *testing.T) {
 	var (
 		dest float32 = 0.0
-		anim         = NewContinuousAnimation(SineDecayFunc(3*time.Second, 5, 1, 1, nil), &dest)
+		anim         = NewContinuousAnimation(SineDecayFunc(3*time.Second, 5, 1, 1), &dest)
 	)
 	anim.Update(1 * time.Second)
 	if dest != 2.886751 {
@@ -47,7 +47,7 @@ func TestContinuousAnimationSineDecay(t *testing.T) {
 func TestContinuousLinearAnimation(t *testing.T) {
 	var (
 		dest float32 = 1.0
-		anim         = NewContinuousAnimation(LinearFunc(10, 20, 5*time.Second), &dest)
+		anim         = NewContinuousAnimation(LinearFunc(5*time.Second, 10, 20), &dest)
 	)
 	if dest != 1.0 {
 		t.Fatalf("Target value does not match expected, got %v", dest)

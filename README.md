@@ -72,7 +72,32 @@ Supports animating a continuous value over time, as defined
 by a function parameter:
 
 ```
-type ContinuousFunc func(elapsed time.Duration) float32
+// Returns {value}, {done}, {remainder}
+type ContinuousFunc func(elapsed time.Duration) (float32, bool, time.Duration)
+```
+
+#### LinearFunc
+
+Produces a linear interpolation between two values.
+
+```
+var (
+	dest float32 = 1.0
+	anim         = NewContinuousAnimation(LinearFunc(5*time.Second, 10, 20), &dest)
+)
+assert(dest == 1.0)
+anim.Update(1000 * time.Millisecond)
+assert(dest == 12)
+anim.Update(1000 * time.Millisecond)
+assert(dest == 14)
+anim.Update(1000 * time.Millisecond)
+assert(dest == 16)
+anim.Update(1000 * time.Millisecond)
+assert(dest == 18)
+anim.Update(1000 * time.Millisecond)
+assert(dest == 20)
+anim.Update(1000 * time.Millisecond)
+assert(dest == 20)
 ```
 
 #### SineDecayFunc
@@ -82,37 +107,39 @@ shake effect.
 
 ```
 var (
-	anim = NewContinuousAnimation(SineDecayFunc(3 * time.Second, 5, 1, 1, nil))
+	dest float32 = 0.0
+	anim         = NewContinuousAnimation(SineDecayFunc(3*time.Second, 5, 1, 1), &dest)
 )
 anim.Update(1 * time.Second)
-assert(anim.Value() == 2.886751)
+assert(dest == 2.886751)
 anim.Update(1 * time.Second)
-assert(anim.Value() == -1.4433757)
+assert(dest == -1.4433757)
 anim.Update(1 * time.Second)
-assert(anim.Value() == 0)
+assert(dest == 0)
 anim.Update(1 * time.Second)
-assert(anim.Value() == 0)
+assert(dest == 0)
 ```
 
 ### FrameAnimation
 
-An animation which loops over a discrete sequence of frames of a set duration
-per frame.
+An animation which iterates over a discrete sequence of frames.
 
 ```
 var (
-	anim = NewFrameAnimation(100*time.Millisecond, []int{0, 2, 1, 3})
+	target int  = 0
+	frames      = []Frame{MsFrame(100, 0), MsFrame(100, 2), MsFrame(100, 1), MsFrame(100, 3)}
+	anim        = NewFrameAnimation(frames, true, &target)
 )
 anim.Update(50 * time.Millisecond)
-assert(anim.Current == 0)
+assert(target == 0)
 anim.Update(100 * time.Millisecond)
-assert(anim.Current == 2)
+assert(target == 2)
 anim.Update(100 * time.Millisecond)
-assert(anim.Current == 1)
+assert(target == 1)
 anim.Update(100 * time.Millisecond)
-assert(anim.Current == 3)
+assert(target == 3)
 anim.Update(100 * time.Millisecond)
-assert(anim.Current == 0)
+assert(target == 0)
 ```
 
 ### GroupedAnimation
@@ -137,30 +164,6 @@ assert(!child2.IsDone())
 anim.Update(1 * time.Second)
 assert(done)
 assert(child2.IsDone())
-```
-
-### LinearAnimation
-
-Interpolates a value from start to finish linearly.
-
-```
-var (
-	dest float32 = 1.0
-	anim         = NewLinearAnimation(&dest, 10, 20, 5*time.Second)
-)
-assert(dest == 1.0)
-anim.Update(1000 * time.Millisecond)
-assert(dest == 12)
-anim.Update(1000 * time.Millisecond)
-assert(dest == 14)
-anim.Update(1000 * time.Millisecond)
-assert(dest == 16)
-anim.Update(1000 * time.Millisecond)
-assert(dest == 18)
-anim.Update(1000 * time.Millisecond)
-assert(dest == 20)
-anim.Update(1000 * time.Millisecond)
-assert(dest == 20)
 ```
 
 ## Development
