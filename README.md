@@ -33,7 +33,7 @@ An animation which is bounded by a fixed amount of time.
 ```
 var (
 	done = false
-	anim = BoundedAnimation{0, 1 * time.Second, nil}
+	anim = NewBoundedAnimation(1 * time.Second)
 	cb   = func() { done = true }
 )
 anim.SetCallback(cb)
@@ -54,9 +54,9 @@ will just cause the animation to loop infinitely.
 ```
 var (
 	done   = false
-	child1 = &BoundedAnimation{0, 1 * time.Second, nil}
-	child2 = &BoundedAnimation{0, 2 * time.Second, nil}
-	anim   = ChainedAnimation{[]Animator{child1, child2}, false, 0, nil}
+	child1 = NewBoundedAnimation(1 * time.Second)
+	child2 = NewBoundedAnimation(2 * time.Second)
+	anim   = NewChainedAnimation([]Animator{child1, child2}, false)
 	cb     = func() { done = true }
 )
 anim.SetCallback(cb)
@@ -151,9 +151,9 @@ finished.
 ```
 var (
 	done   = false
-	child1 = &BoundedAnimation{0, 1 * time.Second, nil}
-	child2 = &BoundedAnimation{0, 2 * time.Second, nil}
-	anim   = GroupedAnimation{[]Animator{child1, child2}, nil}
+	child1 = NewBoundedAnimation(1 * time.Second)
+	child2 = NewBoundedAnimation(2 * time.Second)
+	anim   = NewGroupedAnimation([]Animator{child1, child2})
 	cb     = func() { done = true }
 )
 anim.SetCallback(cb)
