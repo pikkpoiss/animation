@@ -171,5 +171,6 @@ assert(child2.IsDone())
 Run tests:
 
 ```
+cd v1/animation
 go test
 ```
